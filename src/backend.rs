@@ -35,6 +35,8 @@ impl Backend {
             .map(|f| f.clone())
             .collect::<Vec<_>>();
         items.sort();
+        items.reverse();
+
         self.update_filenames(items);
     }
 
@@ -44,6 +46,8 @@ impl Backend {
             self.handle_ogg(str);
         } else if str.contains(".ttf") {
             self.handle_ttf(str);
+        } else if str.contains(".crm") {
+            self.handle_crm(str);
         }
     }
 

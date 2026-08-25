@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{BufReader, Read},
+    io::{BufReader, Cursor, Read},
 };
 
 pub trait FromBytes: Sized {
@@ -21,9 +21,15 @@ macro_rules! impl_from_bytes {
     };
 }
 
-impl_from_bytes!(u8, u16, u32, u64, i8, i16, i32, i64);
+impl_from_bytes!(u8, u16, u32, u64, i8, i16, i32, i64, usize);
 
 pub fn read_int<T: FromBytes>(reader: &mut BufReader<File>) -> T {
+    let mut buf = vec![0u8; T::SIZE];
+    reader.read_exact(&mut buf).unwrap();
+    T::from_le_bytes(&buf)
+}
+
+pub fn read_int_cursor<T: FromBytes>(reader: &mut BufReader<Cursor<Vec<u8>>>) -> T {
     let mut buf = vec![0u8; T::SIZE];
     reader.read_exact(&mut buf).unwrap();
     T::from_le_bytes(&buf)
