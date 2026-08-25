@@ -2,6 +2,9 @@ use parking_lot::Mutex;
 use rodio::{Decoder, MixerDeviceSink, Player, Source};
 use std::{io::Cursor, time::Duration};
 
+use crate::backend::Backend;
+
+#[allow(dead_code)]
 pub struct AudioPlayer {
     handle: &'static mut MixerDeviceSink,
     player: Mutex<Player>,
@@ -94,5 +97,18 @@ impl AudioPlayer {
     pub fn playing(&self) -> bool {
         let player = self.player.lock();
         !player.is_paused() && !player.empty()
+    }
+}
+
+impl Backend {
+    pub fn handle_ogg(&mut self, str: String) {
+        let ags = self.ags.as_ref().unwrap();
+        let bytes = ags.get_file(str.clone());
+        self.show_player_menu();
+        let player = self.player.as_ref().unwrap();
+
+        if let Err(err) = player.upload(bytes) {
+            println!("{}", err);
+        }
     }
 }
