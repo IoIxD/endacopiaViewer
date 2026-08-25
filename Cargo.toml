@@ -1,9 +1,12 @@
 [package]
-name = "endacopiaViewer"
+name = "EndacopiaModTool"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+base64 = "0.23.1"
+fontdue = "0.9.4"
+image = "0.25.10"
 parking_lot = "0.12.5"
 qtbridge = "0.2.0"
 rodio = { version = "0.22.2", features = ["symphonia-ogg"] }

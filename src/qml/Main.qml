@@ -3,23 +3,34 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
 
-import endacopiaViewer
+import EndacopiaModTool
 
 ApplicationWindow {
     visible: true
     title: qsTr("EndacopiaModTool")
-    width: 640
-    height: 480
+    width: 800
+    height: 600
+    minimumWidth: 800
+    minimumHeight: 600
 
     Backend {
         id: backend
 
-        onFilenamesChanged: items => {
+        onUpdateFilenames: items => {
             for (let i = 0; i < items.length; i++) {
                 listmodel.append({
                     name: items[i]
                 });
             }
+        }
+        onShowPlayerMenu: {
+            audiocontrols.visible = true;
+        }
+        onImageDisplay: {
+            imgview.visible = true;
+            imgview.width = backend.width;
+            imgview.height = backend.height;
+            imgview.source = backend.image_data_url;
         }
     }
 
@@ -28,52 +39,96 @@ ApplicationWindow {
         anchors.fill: parent
         spacing: 10
 
-        ListView {
-            id: listview
-            Layout.alignment: Qt.Alignment.AlignLeft
+        ScrollView {
+            Layout.minimumWidth: 240
+            Layout.maximumWidth: 240
             Layout.fillWidth: true
             Layout.fillHeight: true
-            currentIndex: -1
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 
-            model: ListModel {
-                id: listmodel
-            }
+            ListView {
+                id: listview
+                Layout.alignment: Qt.Alignment.AlignLeft
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                currentIndex: -1
 
-            delegate: ItemDelegate {
-                width: ListView.view.width
-                text: modelData
-                highlighted: ListView.isCurrentItem
-                onClicked: {
-                    listview.currentIndex = index;
-                    let text = listview.itemAtIndex(index).text.toString();
-                    audiocontrols.visible = false;
-                    if (text.includes(".ogg")) {
-                        backend.sound_selected(text);
-                        audiocontrols.visible = true;
+                model: ListModel {
+                    id: listmodel
+                }
+
+                delegate: ItemDelegate {
+                    width: ListView.view.width
+                    text: modelData
+                    highlighted: ListView.isCurrentItem
+                    onClicked: {
+                        listview.currentIndex = index;
+                        let text = listview.itemAtIndex(index).text.toString();
+                        audiocontrols.visible = false;
+                        imgview.visible = false;
+                        backend.do_file_action(text);
                     }
                 }
             }
         }
 
-        RowLayout {
-            id: audiocontrols
-            Layout.alignment: Qt.Alignment.AlignRight
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.margins: 8
-            spacing: 8
-            Button {
-                text: "Play"
-                onClicked: player.play()
+
+            RowLayout {
+                id: audiocontrols
+                Layout.alignment: Qt.Alignment.AlignCenter
+                visible: false
+
+                Layout.margins: 8
+                spacing: 8
+                Button {
+                    id: playButton
+                    icon.name: "media-playback-start"
+                    visible: true
+                    onClicked: backend.play_sound()
+                }
+                Button {
+                    id: pauseButton
+                    icon.name: "media-playback-pause"
+                    visible: false
+                    onClicked: backend.play_sound()
+                }
+                Button {
+                    id: stopButton
+                    icon.name: "media-playback-stop"
+                    onClicked: backend.stop_sound()
+                }
+
+                Text {
+                    id: playbackTimer
+                    text: "0:00 / 0:00"
+                    color: parent.palette.text
+                }
             }
-            Button {
-                text: "Pause"
-                onClicked: player.pause()
+
+            Image {
+                id: imgview
+                visible: false
+                source: backend.image_data_url
+                fillMode: Image.Stretch
             }
-            Button {
-                text: "Stop"
-                onClicked: player.stop()
+        }
+    }
+    Timer {
+        interval: 1
+        running: true
+        repeat: true
+        onTriggered: {
+            if (backend.sound_playing()) {
+                playButton.visible = false;
+                pauseButton.visible = true;
+            } else {
+                playButton.visible = true;
+                pauseButton.visible = false;
             }
+            playbackTimer.text = backend.sound_pos() + " / " + backend.sound_len();
         }
     }
 
