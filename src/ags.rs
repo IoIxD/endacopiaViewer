@@ -148,7 +148,6 @@ impl AGS {
         buf.resize(file.length() as usize, 0);
         reader.read_exact(&mut buf).unwrap();
 
-        println!("{:?}", buf.len());
         return buf;
     }
 }

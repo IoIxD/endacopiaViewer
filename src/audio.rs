@@ -36,7 +36,8 @@ impl AudioPlayer {
         self.player.lock().play();
     }
 
-    pub fn pos(&self) -> u64 {
-        self.player.lock().get_pos().as_secs()
+    pub fn pos(&self) -> String {
+        let pos = self.player.lock().get_pos();
+        format!("{}:{}", pos.as_secs() / 60, pos.as_secs())
     }
 }

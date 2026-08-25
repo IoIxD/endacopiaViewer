@@ -1,16 +1,33 @@
-use qtrs::prelude::*;
+use qtbridge::{QApp, qobject};
 
 use crate::{ags::AGS, audio::AudioPlayer};
+
+#[derive(Default)]
+pub struct Backend {}
+
+#[qobject(Singleton)]
+impl Backend {
+    #[qslot]
+    fn say_hello(&self) {
+        println!("Hello World!")
+    }
+}
 
 pub struct GUIManager;
 
 impl GUIManager {
     pub fn go(ags: &mut AGS) {
-        let player = AudioPlayer::new();
+        // let player = AudioPlayer::new();
 
-        let app = Application::new();
+        QApp::new()
+            .register::<Backend>()
+            .load_qml(include_bytes!("qml/Main.qml"))
+            .run();
 
-        let mut window = Widget::new()
+        /*
+         let app = QApp::new();
+
+        let mut window = QWidget::new()
             .title("Endacopia Viewer")
             .size(640, 480)
             .build();
@@ -23,10 +40,11 @@ impl GUIManager {
         let mut controls_layout = HBoxLayout::with_parent(&controls);
         let play_pause_btn = PushButton::new("►").build();
         let stop_btn = PushButton::new("■").build();
-        let progress_bar = ProgressBar::new().build();
+        let mut time = Label::new("").build();
         controls_layout.add(play_pause_btn);
         controls_layout.add(stop_btn);
-        controls_layout.add(progress_bar);
+        time.set_object_name("time_label");
+
         controls.set_layout(&controls_layout);
         controls.hide();
 
@@ -38,7 +56,6 @@ impl GUIManager {
             /* music player */
             if str.contains(".ogg") {
                 let bytes = ags.get_file(str);
-                let max = bytes.len() as i32;
                 if let Err(err) = player.upload(bytes) {
                     println!("{}", err);
                 } else {
@@ -51,14 +68,6 @@ impl GUIManager {
             }
         });
 
-        let timer = Timer::new(1)
-            .on_timeout(move || {
-                if (player.pos() != 0) {
-                    println!("{}", player.pos());
-                }
-            })
-            .build();
-
         hbox.add(list);
 
         hbox.add(controls);
@@ -66,6 +75,14 @@ impl GUIManager {
         window.set_layout(&hbox);
         window.show();
 
-        app.exec();
+        let timer = Timer::new(1)
+            .on_timeout(move || {
+                if let Some(mut label) = window.find(WidgetKind::Label, "time_label") {
+                    // label.set_text(player.pos());
+                }
+            })
+            .build();
+
+        app.exec();*/
     }
 }
